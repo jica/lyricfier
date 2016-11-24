@@ -1,12 +1,15 @@
 const request = require('request').defaults({timeout: 5000});
 const async = require('async');
 const initialPortTest = 4370;
+const HTTP_PROTOCOL='http';
+const HTTPS_PROTOCOL='https';
 
 export class SpotifyService {
 
     protected foundPort  = false;
     protected port : number;
-    protected portTries = 15;
+    protected protocol : string = HTTPS_PROTOCOL;
+    protected portTries = 30;
     protected albumImagesCache = {};
 
     protected oAuthToken = {
@@ -26,7 +29,7 @@ export class SpotifyService {
     }
 
     protected url(u:string) {
-        return `https://127.0.0.1:${this.port}${u}`;
+        return `${this.protocol}://127.0.0.1:${this.port}${u}`;
     }
 
     public getOAuthToken(cb) {
@@ -55,7 +58,11 @@ export class SpotifyService {
             this.getCsrfToken((err, token) => {
                 if (err) {
                     console.log('FAILED WITH PORT: ', this.port)
-                    this.port++;
+                    if(this.protocol === HTTPS_PROTOCOL){
+                        this.protocol = HTTP_PROTOCOL;
+                    }else{
+                        this.port++;
+                    }
                     return finish(err);
                 }
                 this.foundPort = true;
